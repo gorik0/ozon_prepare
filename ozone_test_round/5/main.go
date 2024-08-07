@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -40,7 +39,6 @@ func main() {
 
 		line, _, _ := in.ReadLine()
 		jsonLines, _ = strconv.Atoi(string(line))
-		log.Println(jsonLines)
 		for range jsonLines {
 
 			var stri string
@@ -49,6 +47,7 @@ func main() {
 
 			stringJson = stringJson + strings.Trim(stri, "\n")
 		}
+		//stringJson = `[[[],["fqj"],"ffo"]]`
 
 		err := json.Unmarshal([]byte(stringJson), &jso)
 
@@ -58,9 +57,9 @@ func main() {
 
 				return
 			}
-			_, offset := throughList(jsoArray)
+			l := throughList(jsoArray)
 
-			jsons = append(jsons, jsoArray[:len(jsoArray)-offset])
+			jsons = append(jsons, l)
 			continue
 
 		}
@@ -74,37 +73,51 @@ func main() {
 
 }
 
-func throughList(li []interface{}) (bool, int) {
-	isEmpty := true
-	var offset int
+func throughList(li []interface{}) []interface{} {
+
 	var newLi []interface{} = make([]interface{}, len(li))
 	copy(newLi, li)
+	var isEmpty = true
+	var offset int
 	for pos, i := range li {
 		//	::: is list
 		if liSmall, ok := i.([]interface{}); ok {
-			if empty, _ := throughList(liSmall); empty {
+			liSmall = throughList(liSmall)
 
+			if liSmall == nil {
 				newLi = append(newLi[:pos-offset], newLi[pos+1-offset:]...)
+
 				offset++
+
+			} else {
+				newLi[pos-offset] = liSmall
+				isEmpty = false
 			}
 		} else if mapSmall, ok := i.(map[string]interface{}); ok {
 			if throughMap(mapSmall) {
 				newLi = append(newLi[:pos-offset], newLi[pos+1-offset:]...)
 				offset++
+			} else {
+				isEmpty = false
 			}
+		} else {
+			isEmpty = false
 		}
-		isEmpty = false
-	}
-	copy(li, newLi)
 
-	return isEmpty, offset
+	}
+	if isEmpty {
+		return nil
+	}
+	return newLi
 }
 func throughMap(ma map[string]interface{}) bool {
 	isEmpty := true
 	for key, i := range ma {
 
 		if liSmall, ok := i.([]interface{}); ok {
-			if empty, _ := throughList(liSmall); empty {
+			liSmall = throughList(liSmall)
+			ma[key] = liSmall
+			if liSmall == nil {
 				delete(ma, key)
 
 			} else {
@@ -133,9 +146,6 @@ func throughMap(ma map[string]interface{}) bool {
 3
 6
 {
-
-
-
 "a": "f",
 "b": {"c": {"d": [], "e": ["ababa"]}},
 "c": {"k": {}},
