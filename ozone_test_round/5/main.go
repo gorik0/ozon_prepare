@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -23,98 +24,131 @@ func main() {
 		out                  *bufio.Writer
 		stringJson           string
 		//open, close        int
-		jso      map[string]interface{}
-		jsoArray []interface{}
+		jso             map[string]interface{}
+		jsoArray, jsons []interface{}
 	)
-	jso = map[string]interface{}{}
-	jsoArray = []interface{}{}
 	in = bufio.NewReader(os.Stdin)
 	out = bufio.NewWriter(os.Stdout)
 	defer out.Flush()
 	//	throughout data
-	fmt.Fscan(in, &dataCount)
+	line, _, _ := in.ReadLine()
+	dataCount, _ = strconv.Atoi(string(line))
 	for range dataCount {
-		fmt.Fscan(in, &jsonLines)
+		jsoArray = []interface{}{}
+		jso = map[string]interface{}{}
+		stringJson = ""
 
-		for jsonLines > 0 {
+		line, _, _ := in.ReadLine()
+		jsonLines, _ = strconv.Atoi(string(line))
+		log.Println(jsonLines)
+		for range jsonLines {
 
 			var stri string
-			stri, _ = in.ReadString('\n')
+			line, _, _ := in.ReadLine()
+			stri = string(line)
 
 			stringJson = stringJson + strings.Trim(stri, "\n")
-			if stri != "\n" {
-				jsonLines--
+		}
+
+		err := json.Unmarshal([]byte(stringJson), &jso)
+
+		if err != nil {
+
+			if err = json.Unmarshal([]byte(stringJson), &jsoArray); err != nil {
+
+				return
 			}
+			_, offset := throughList(jsoArray)
+
+			jsons = append(jsons, jsoArray[:len(jsoArray)-offset])
+			continue
+
 		}
+		throughMap(jso)
+
+		jsons = append(jsons, jso)
+
 	}
-	println(stringJson)
-	//stringJson = `[{}, [], {}, 	{}, "string"]`
-	//Handle(stringJson)
-	err := json.Unmarshal([]byte(stringJson), &jso)
-
-	if err != nil {
-		println("no map ...")
-
-		if err = json.Unmarshal([]byte(stringJson), &jsoArray); err != nil {
-
-			println("no list too")
-			return
-		}
-		throughList(jsoArray)
-		log.Println(jsoArray)
-		return
-	}
-	throughMap(jso)
-	println(jso)
-	//log.Printf("HSON ::: %v", jso)
+	jj, _ := json.Marshal(jsons)
+	fmt.Fprintf(out, "%v", string(jj))
 
 }
 
-func throughList(li []interface{}) bool {
+func throughList(li []interface{}) (bool, int) {
 	isEmpty := true
-
-	for _, i := range li {
-		log.Println("I ::: ", i)
+	var offset int
+	var newLi []interface{} = make([]interface{}, len(li))
+	copy(newLi, li)
+	for pos, i := range li {
 		//	::: is list
 		if liSmall, ok := i.([]interface{}); ok {
-			if throughList(liSmall) {
-				println("emptty")
-				//li = append(li[:pos], li[pos+1:]...)
+			if empty, _ := throughList(liSmall); empty {
+
+				newLi = append(newLi[:pos-offset], newLi[pos+1-offset:]...)
+				offset++
 			}
 		} else if mapSmall, ok := i.(map[string]interface{}); ok {
 			if throughMap(mapSmall) {
-				println("emptty")
-				//li = append(li[:pos], li[pos+1:]...)
+				newLi = append(newLi[:pos-offset], newLi[pos+1-offset:]...)
+				offset++
 			}
 		}
 		isEmpty = false
 	}
-	return isEmpty
+	copy(li, newLi)
+
+	return isEmpty, offset
 }
 func throughMap(ma map[string]interface{}) bool {
 	isEmpty := true
-	for _, i := range ma {
+	for key, i := range ma {
 
-		log.Println("I ::: ", i)
 		if liSmall, ok := i.([]interface{}); ok {
-			if throughList(liSmall) {
-				println("empty ..")
+			if empty, _ := throughList(liSmall); empty {
+				delete(ma, key)
+
+			} else {
+
+				isEmpty = false
 			}
 		} else if mapSmall, ok := i.(map[string]interface{}); ok {
 			if throughMap(mapSmall) {
-				println("empty ..")
+				delete(ma, key)
+
+			} else {
+				isEmpty = false
+
 			}
+		} else {
+
+			isEmpty = false
 		}
-		isEmpty = false
 	}
 	return isEmpty
 }
 
 /*
-1
+
+
+3
+6
+{
+
+
+
+"a": "f",
+"b": {"c": {"d": [], "e": ["ababa"]}},
+"c": {"k": {}},
+"d": {"d": {"e": {}}}
+}
 2
-[{}, [1,[],true], {}, 	{}, "string"
+[{}, [], {}, 	{}, "string"
 ]
+3
+[{"one":
+	[{"two":
+		[{"three":"four"}]}]}]
+
 
 
 */
