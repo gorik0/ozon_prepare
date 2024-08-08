@@ -1,24 +1,20 @@
 package main
 
-import (
-	"bufio"
-	"fmt"
-	"os"
-)
+import "log"
 
 func main() {
-	var in *bufio.Reader = bufio.NewReader(os.Stdin)
-	var a int
-	//scanner := bufio.NewScanner(os.Stdin)
-	fmt.Fscanln(in, &a)
-	for range a {
-		line, _, _ := in.ReadLine()
-		println("line:", string(line))
 
-	}
-
+	a := []int{1, 2, 3, 4, 5}
+	log.Println(a[1:])
 }
 
-func deleteFromMa(ma []interface{}) {
-	ma = append(ma[:1], ma[2])
+func Changeslice(a []int) {
+	println("ssssssss")
+	println(a)
+	a[0] = 99999
+	println(a)
+	a = append(a[:1], a[2])
+	println(a)
+	a[0] = 0
+	log.Println(a)
 }
