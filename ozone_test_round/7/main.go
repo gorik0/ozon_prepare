@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -39,15 +38,20 @@ func main() {
 	}
 	// scan NEW
 
-	log.Println("oldLogins:", oldLogins)
-	log.Println("newLogins:", newLogins)
+	//log.Println("oldLogins:", oldLogins)
+	//log.Println("newLogins:", newLogins)
 
-	var l1, l2 string = "bacccab", "abcccba"
+gorik:
+	for _, loginN := range newLogins {
+		for _, loginO := range oldLogins {
+			if LoginsIsEq(loginO, loginN) {
+				fmt.Fprintln(out, 1)
+				continue gorik
+			}
+		}
+		fmt.Fprintln(out, 0)
 
-	log.Printf("l1 ::: %s\n", l1)
-	log.Printf("l2 ::: %s\n", l2)
-	log.Println(LoginsIsEq(l1, l2))
-
+	}
 }
 
 func LoginsIsEq(l1 string, l2 string) bool {
@@ -66,19 +70,19 @@ func LoginsIsEqWithReplace(l1 string, l2 string) bool {
 
 		if l1[i] != l2[i] {
 			if i == len(l1)-1 {
-				println(1)
-				println("i :::", i)
+				//println(1)
+				//println("i :::", i)
 				return false
 			} else {
 
 				if i+2 != len(l1) {
-					log.Println(2)
-					println("i :::", i)
+					//log.Println(2)
+					//println("i :::", i)
 
 					return l1[i] == l2[i+1] && l2[i] == l1[i+1] && l2[i+2:] == l1[i+2:]
 				} else {
-					println(3)
-					println("i :::", i)
+					//println(3)
+					//println("i :::", i)
 
 					return l1[i] == l2[i+1] && l2[i] == l1[i+1]
 
