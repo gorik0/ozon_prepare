@@ -18,9 +18,6 @@ func main() {
 		out                                          *bufio.Writer
 	)
 
-	ti := time.Now()
-	_ = boxesCount
-	_ = boxes
 	in = bufio.NewReader(os.Stdin)
 	logistics = make([]int, 0)
 	out = bufio.NewWriter(os.Stdout)
@@ -28,6 +25,7 @@ func main() {
 	defer out.Flush()
 
 	fmt.Fscan(in, &dataCount)
+	ti := time.Now()
 	for range dataCount {
 		fmt.Fscan(in, &carsCount, &carTonnage)
 
@@ -42,10 +40,12 @@ func main() {
 			boxes[i] = int(math.Pow(2, float64(el)))
 
 		}
+		println("before equip ___", time.Since(ti).Seconds())
 		//remain := EquipCar(boxes, int(carTonnage))
 		//log.Println("REMAIN :::: ", remain)
 		logistic := 0
 		carsRemain := carsCount
+
 		for {
 			boxes = EquipCar(boxes, int(carTonnage))
 			carsRemain--
