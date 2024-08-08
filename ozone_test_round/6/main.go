@@ -6,13 +6,12 @@ import (
 	"math"
 	"os"
 	"sort"
-	"time"
 )
 
 func main() {
 	var (
 		dataCount, boxesCount, carsCount, carTonnage int
-		boxes                                        []int
+		boxesMappa                                   map[int]int
 		logistics                                    []int
 		in                                           *bufio.Reader
 		out                                          *bufio.Writer
@@ -25,34 +24,39 @@ func main() {
 	defer out.Flush()
 
 	fmt.Fscan(in, &dataCount)
-	ti := time.Now()
+	//ti := time.Now()
 	for range dataCount {
 		fmt.Fscan(in, &carsCount, &carTonnage)
 
 		fmt.Fscan(in, &boxesCount)
-		boxes = make([]int, boxesCount)
-		for i := range boxesCount {
-			fmt.Fscan(in, &boxes[i])
+		boxesMappa = make(map[int]int)
+		for range boxesCount {
+			//fmt.Fscan(in, &boxes[i])
+			var boxi int
+			fmt.Fscan(in, &boxi)
+			boxi = int(math.Pow(2, float64(boxi)))
+			PushBoxi(boxi, boxesMappa)
 
 		}
 
-		for i, el := range boxes {
-			boxes[i] = int(math.Pow(2, float64(el)))
-
-		}
-		println("before equip ___", time.Since(ti).Seconds())
+		//for i, el := range boxes {
+		//	boxes[i] = int(math.Pow(2, float64(el)))
+		//
+		//}
+		//println("before equip ___", time.Since(ti).Seconds())
 		//remain := EquipCar(boxes, int(carTonnage))
 		//log.Println("REMAIN :::: ", remain)
 		logistic := 0
 		carsRemain := carsCount
 
+		//log.Println(boxesMappa)
 		for {
-			boxes = EquipCar(boxes, int(carTonnage))
+			EquipCar(boxesMappa, int(carTonnage))
 			carsRemain--
-			if len(boxes) != 0 && carsRemain == 0 {
+			if len(boxesMappa) != 0 && carsRemain == 0 {
 				carsRemain = carsCount
 				logistic++
-			} else if len(boxes) == 0 {
+			} else if len(boxesMappa) == 0 {
 				logistic++
 				break
 			}
@@ -65,42 +69,55 @@ func main() {
 
 		fmt.Fprintln(out, i)
 	}
-	println(time.Since(ti).Seconds())
+	//println(time.Since(ti).Seconds())
 
 }
 
-func EquipCar(boxes []int, tonnage int) (boxesRemain []int) {
-	var offset int
-	sort.Slice(boxes, func(i, j int) bool { return boxes[i] > boxes[j] })
-	boxesRemain = make([]int, len(boxes))
-	copy(boxesRemain, boxes)
-	for i, box := range boxes {
-		if box > tonnage {
+func PushBoxi(boxi int, mappa map[int]int) {
+	//println("b", boxi)
+	if boxCount, ok := mappa[boxi]; ok {
+		//println("exist")
+		mappa[boxi] = boxCount + 1
+	} else {
+		mappa[boxi] = 1
+	}
+
+}
+
+func EquipCar(ma map[int]int, tonnage int) {
+
+	boxeKeys := make([]int, 0)
+	for key, _ := range ma {
+		boxeKeys = append(boxeKeys, key)
+
+	}
+	sort.Sort(sort.Reverse(sort.IntSlice(boxeKeys)))
+	for _, key := range boxeKeys {
+
+		if key > tonnage {
 			continue
 		} else {
-			tonnage -= box
+			tonnage -= key
 			if tonnage == 0 {
-				if i == 0 {
-					return boxesRemain[1:]
 
-				} else if i == len(boxes)-1 {
-					return boxesRemain[:i-offset]
-				} else {
+				DeleteBoxFromMa(ma, key)
+				return
 
-					return append(boxesRemain[:i-offset], boxesRemain[i+1-offset:]...)
-				}
 			} else {
-				if i == 0 {
-					boxesRemain = boxesRemain[1:]
-					offset++
+				DeleteBoxFromMa(ma, key)
+				//:::: Try delete boxes of this weight
+				if _, ok := ma[key]; ok {
+					for tonnage >= key {
+						tonnage -= key
+						DeleteBoxFromMa(ma, key)
+						if _, ok := ma[key]; !ok {
+							break
+						}
+						if tonnage == 0 {
+							return
+						}
+					}
 
-				} else if i == len(boxes)-1 {
-					boxesRemain = boxesRemain[:i-offset]
-					offset++
-				} else {
-
-					boxesRemain = append(boxesRemain[:i-offset], boxesRemain[i+1-offset:]...)
-					offset++
 				}
 			}
 		}
@@ -109,20 +126,33 @@ func EquipCar(boxes []int, tonnage int) (boxesRemain []int) {
 	return
 }
 
+func DeleteBoxFromMa(ma map[int]int, key int) {
+	if boxesCount, ok := ma[key]; ok {
+		ma[key] = boxesCount - 1
+		if boxesCount == 1 {
+			delete(ma, key)
+		}
+
+	}
+
+}
+
 /*
 
 	1
-	2 10
-	3 1 3 1 3 1 3 1 0
+	1 10
+2
+	3 1
 
 	1
-	2 10
-	1
+1 20
+7
+3 1 3 1 3 1 0
 
-	1
-	2 17
-	6
-	0 3 1 4 3 3
+1
+1 41
+6
+5 5 3 0 2 1
 
 
 
