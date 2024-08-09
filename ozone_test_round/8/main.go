@@ -10,7 +10,7 @@ import (
 )
 
 var combinations [][]Point
-var ma map[int][]Point
+var ma map[int]map[Point]byte
 
 type Point struct {
 	x int
@@ -53,28 +53,28 @@ func main() {
 		//	 scan ressTypes
 		fmt.Fscan(in, &resTypes)
 		//	 scan resTypes
-		ma = make(map[int][]Point)
+		ma = make(map[int]map[Point]byte)
 		for i := range resTypes {
 
 			//	 scan ressAmount
 			fmt.Fscan(in, &resAmount)
 			//log.Println("resAmount:", resAmount)
 			//	 scan ressAmount
-			ma[i] = make([]Point, resAmount)
+			ma[i] = make(map[Point]byte, resAmount)
 
-			for j := range resAmount {
+			for range resAmount {
 
 				//	 scan coord
 				fmt.Fscan(in, &x, &y)
 				//log.Println("x :::", x)
 				//log.Println("y :::", y)
-				ma[i][j] = Point{x, y}
+				ma[i][Point{x, y}] = 1
 				//	 scan coord
 
 			}
 
 		}
-		log.Println(ma)
+		//log.Println(ma)
 		//log.Printf("dataCount = %d, width = %d, length = %d\n", dataCount, width, length)
 		//log.Println("resTypes = ", resTypes)
 		//log.Println("ma = ", ma)
@@ -233,9 +233,9 @@ func ThMa(keys []int, accum []Point, deepLvl int) {
 	//var item []Point
 	deepLvl++
 	last := len(keys) == 1
-	n := len(ma[keys[0]])
-	for i := range n {
-		accum[deepLvl] = ma[keys[0]][i]
+
+	for key, _ := range ma[keys[0]] {
+		accum[deepLvl] = key
 		if last {
 			var accumCopy []Point = make([]Point, len(accum))
 			copy(accumCopy, accum)
