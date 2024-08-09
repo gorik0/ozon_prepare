@@ -9,13 +9,20 @@ import (
 	"slices"
 )
 
+var combinations [][]Point
+var ma map[int][]Point
+
+type Point struct {
+	x int
+	y int
+}
+
 func main() {
 	var (
 		dataCount, width, length, resAmount, resTypes, x, y, minSquare int
 
 		//coord                                               []int
 		//ress                                                [][]int
-		ma  map[int][][2]int
 		in  *bufio.Reader
 		out *bufio.Writer
 	)
@@ -32,6 +39,8 @@ func main() {
 	//:: scan DATA count
 
 	for range dataCount {
+		minSquare = 0
+		combinations = make([][]Point, 0)
 		//	 scan (width,length)
 		fmt.Fscan(in, &width, &length)
 		//	 scan (width,length)
@@ -39,42 +48,51 @@ func main() {
 		//	 scan ressTypes
 		fmt.Fscan(in, &resTypes)
 		//	 scan resTypes
-		ma = make(map[int][][2]int, resTypes)
+		ma = make(map[int][]Point, resTypes)
 		for i := range resTypes {
 
 			//	 scan ressAmount
 			fmt.Fscan(in, &resAmount)
-			log.Println("resAmount:", resAmount)
+			//log.Println("resAmount:", resAmount)
 			//	 scan ressAmount
-			ma[i] = make([][2]int, resAmount)
+			ma[i] = make([]Point, resAmount)
 
 			for j := range resAmount {
 
 				//	 scan coord
 				fmt.Fscan(in, &x, &y)
-				log.Println("x :::", x)
-				log.Println("y :::", y)
-				ma[i][j] = [2]int{x, y}
+				//log.Println("x :::", x)
+				//log.Println("y :::", y)
+				ma[i][j] = Point{x, y}
 				//	 scan coord
 
 			}
 
 		}
 
-		log.Printf("dataCount = %d, width = %d, length = %d\n", dataCount, width, length)
-		log.Println("resTypes = ", resTypes)
-		log.Println("ma = ", ma)
+		//log.Printf("dataCount = %d, width = %d, length = %d\n", dataCount, width, length)
+		//log.Println("resTypes = ", resTypes)
+		//log.Println("ma = ", ma)
+		key := make([]int, 0)
+		for ke, _ := range ma {
+			key = append(key, ke)
 
-		combinations := FindCombinations(ma)
+		}
+		acc := make([]Point, 0)
+
+		ThMa(key, acc)
 		log.Println("Combinatiosn ::; ", combinations)
 		for _, combination := range combinations {
-
+			//
 			sq := FindSquareAquiredAllPoints(combination)
 			println(sq)
-			if minSquare == 0 {
-				minSquare = sq
-			} else if sq < minSquare {
-				minSquare = sq
+			if sq != 0 {
+				if minSquare == 0 {
+					minSquare = sq
+				} else if sq < minSquare {
+					minSquare = sq
+				}
+
 			}
 		}
 		println("minSquare ::: ", minSquare)
@@ -84,7 +102,7 @@ func main() {
 		//
 		//points = append(points, p)
 		//
-
+		fmt.Fprintln(out, minSquare)
 	}
 
 	//for i, quntCombin := range ressQuantitytTypes {
@@ -93,22 +111,24 @@ func main() {
 
 }
 
-func FindSquareAquiredAllPoints(points [][2]int) (squareAquired int) {
+func FindSquareAquiredAllPoints(points []Point) (squareAquired int) {
 	var x, y []int
 	for _, point := range points {
-		x = append(x, point[0])
-		y = append(y, point[1])
+		x = append(x, point.x)
+		y = append(y, point.y)
 	}
-	xMax := slices.Max(x)
-	yMax := slices.Max(y)
+	xMax := slices.Max(x) + 1
+	yMax := slices.Max(y) + 1
 	yMin := slices.Min(y)
 	xMin := slices.Min(x)
 
+	log.Println("point ", points)
 	return findSquareByTwoPoints([2]int{xMin, yMin}, [2]int{xMax, yMax})
 
 }
 
 func findSquareByTwoPoints(p1 [2]int, p2 [2]int) int {
+	log.Println(p1, p2)
 	x := p1[0] - p2[0]
 	y := p1[1] - p2[1]
 	return int(math.Abs(float64(x * y)))
@@ -194,6 +214,21 @@ func updateIndSlice(s []int) {
 			s[i-1] -= 1
 		} else {
 			break
+		}
+
+	}
+}
+
+func ThMa(keys []int, accum []Point) {
+	var item []Point
+	last := len(keys) == 1
+	n := len(ma[keys[0]])
+	for i := range n {
+		item = append(accum, ma[keys[0]][i])
+		if last {
+			combinations = append(combinations, item)
+		} else {
+			ThMa(keys[1:], item)
 		}
 
 	}
