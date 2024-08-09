@@ -38,17 +38,22 @@ func main() {
 	fmt.Fscan(in, &dataCount)
 	//:: scan DATA count
 
-	for range dataCount {
+	for o := range dataCount {
+		println(o)
+		println(o)
+		println(o)
+		println(o)
 		minSquare = 0
 		combinations = make([][]Point, 0)
 		//	 scan (width,length)
 		fmt.Fscan(in, &width, &length)
+		log.Println("width:", width, "length:", length)
 		//	 scan (width,length)
 
 		//	 scan ressTypes
 		fmt.Fscan(in, &resTypes)
 		//	 scan resTypes
-		ma = make(map[int][]Point, resTypes)
+		ma = make(map[int][]Point)
 		for i := range resTypes {
 
 			//	 scan ressAmount
@@ -69,7 +74,7 @@ func main() {
 			}
 
 		}
-
+		log.Println(ma)
 		//log.Printf("dataCount = %d, width = %d, length = %d\n", dataCount, width, length)
 		//log.Println("resTypes = ", resTypes)
 		//log.Println("ma = ", ma)
@@ -78,14 +83,14 @@ func main() {
 			key = append(key, ke)
 
 		}
-		acc := make([]Point, 0)
+		acc := make([]Point, len(key))
 
-		ThMa(key, acc)
+		ThMa(key, acc, -1)
 		log.Println("Combinatiosn ::; ", combinations)
 		for _, combination := range combinations {
 			//
 			sq := FindSquareAquiredAllPoints(combination)
-			println(sq)
+			println("SQ::::", sq)
 			if sq != 0 {
 				if minSquare == 0 {
 					minSquare = sq
@@ -95,7 +100,7 @@ func main() {
 
 			}
 		}
-		println("minSquare ::: ", minSquare)
+		//println("minSquare ::: ", minSquare)
 
 		//var points [][2]int
 		//var p [2]int
@@ -113,6 +118,7 @@ func main() {
 
 func FindSquareAquiredAllPoints(points []Point) (squareAquired int) {
 	var x, y []int
+	log.Println("Points:", points)
 	for _, point := range points {
 		x = append(x, point.x)
 		y = append(y, point.y)
@@ -122,13 +128,13 @@ func FindSquareAquiredAllPoints(points []Point) (squareAquired int) {
 	yMin := slices.Min(y)
 	xMin := slices.Min(x)
 
-	log.Println("point ", points)
+	//log.Println("point ", points)
 	return findSquareByTwoPoints([2]int{xMin, yMin}, [2]int{xMax, yMax})
 
 }
 
 func findSquareByTwoPoints(p1 [2]int, p2 [2]int) int {
-	log.Println(p1, p2)
+	//log.Println(p1, p2)
 	x := p1[0] - p2[0]
 	y := p1[1] - p2[1]
 	return int(math.Abs(float64(x * y)))
@@ -137,14 +143,18 @@ func findSquareByTwoPoints(p1 [2]int, p2 [2]int) int {
 
 /*
 1
-2 3
-2
-2
-1 3
-2 2
-2
-2 3
-2 1
+5 2
+4
+1
+3 1
+3
+3 2
+5 2
+5 1
+1
+4 2
+1
+3 2
 
 l = [slice1,slice2,slice3]
 
@@ -219,16 +229,19 @@ func updateIndSlice(s []int) {
 	}
 }
 
-func ThMa(keys []int, accum []Point) {
-	var item []Point
+func ThMa(keys []int, accum []Point, deepLvl int) {
+	//var item []Point
+	deepLvl++
 	last := len(keys) == 1
 	n := len(ma[keys[0]])
 	for i := range n {
-		item = append(accum, ma[keys[0]][i])
+		accum[deepLvl] = ma[keys[0]][i]
 		if last {
-			combinations = append(combinations, item)
+			var accumCopy []Point = make([]Point, len(accum))
+			copy(accumCopy, accum)
+			combinations = append(combinations, accumCopy)
 		} else {
-			ThMa(keys[1:], item)
+			ThMa(keys[1:], accum, deepLvl)
 		}
 
 	}
